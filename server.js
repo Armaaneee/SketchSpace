@@ -12,7 +12,7 @@ const server = http.createServer(app);
 const io = socketIo(server, {
   cors: {
     origin: process.env.NODE_ENV === 'production' 
-      ? ['https://sketchspace.vercel.app'] 
+      ? ['https://sketch--space.vercel.app'] 
       : "*",
     methods: ["GET", "POST"],
     credentials: true

@@ -379,3 +379,16 @@ body {
 .modal p {
   margin: 10px 0;
 }
+
+.github-link {
+  position: absolute;
+  bottom: 15px;
+  right: 15px;
+  color: #333;
+  transition: color 0.2s ease;
+  line-height: 0; /* Added to remove extra space around SVG */
+}
+
+.github-link:hover {
+  color: var(--primary-color);
+}

@@ -30,7 +30,7 @@ A real-time collaborative whiteboard application that allows multiple users to d
 
 1. Clone the repository
 ```bash
-git clone https://github.com/yourusername/SketchSpace.git
+git clone https://github.com/Armaaneee/SketchSpace.git
 cd SketchSpace
 ```
 
@@ -63,4 +63,4 @@ MIT
 
 ## Author
 
-Armaan
+Armaan Johar
