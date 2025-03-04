@@ -1,14 +1,30 @@
 // Socket initialization with improved reconnection settings and error handling
 const socket = io({
-  transports: ['polling'],
+  transports: ['websocket', 'polling'],
   path: '/socket.io/',
   reconnection: true,
-  reconnectionAttempts: 5,
-  reconnectionDelay: 1000,
-  reconnectionDelayMax: 5000,
-  timeout: 20000,
+  reconnectionAttempts: 10,
+  reconnectionDelay: 500,
+  reconnectionDelayMax: 2000,
+  timeout: 10000,
   autoConnect: true,
   forceNew: true
+});
+
+// Add exponential backoff for reconnection
+let reconnectAttempts = 0;
+socket.on('connect_error', (error) => {
+  console.log('Connection error:', error);
+  const timeout = Math.min(1000 * Math.pow(2, reconnectAttempts), 10000);
+  reconnectAttempts++;
+  setTimeout(() => {
+      socket.connect();
+  }, timeout);
+});
+
+socket.on('connect', () => {
+  reconnectAttempts = 0;
+  console.log('Connected to server');
 });
 
 // Add connection status monitoring with ping/pong

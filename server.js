@@ -10,25 +10,20 @@ const server = http.createServer(app);
 
 // Initialize socket.io with proper CORS and production settings
 const io = socketIo(server, {
-    transports: ['polling'],
+    transports: ['websocket', 'polling'], // Add websocket as first option
     path: '/socket.io/',
     reconnection: true,
-    reconnectionAttempts: 5,
-    reconnectionDelay: 1000,
-    reconnectionDelayMax: 5000,
-    timeout: 20000,
-    autoConnect: true,
-    forceNew: true,
+    reconnectionAttempts: 10, // Increased from 5
+    reconnectionDelay: 500, // Reduced from 1000
+    reconnectionDelayMax: 2000, // Reduced from 5000
+    timeout: 10000, // Reduced from 20000
+    pingTimeout: 30000, // Reduced from 60000
+    pingInterval: 10000, // Reduced from 25000
     cors: {
         origin: "*",
         methods: ["GET", "POST", "OPTIONS"],
         credentials: true
-    },
-    allowEIO3: true,
-    pingTimeout: 60000,
-    pingInterval: 25000,
-    maxHttpBufferSize: 1e8,
-    upgradeTimeout: 30000
+    }
 });
 
 // MongoDB URI from environment variables with fallback
@@ -40,19 +35,20 @@ mongoose.set('bufferCommands', false);
 
 // Connect to MongoDB with production-ready options
 mongoose.connect(MONGO_URI, {
-    serverSelectionTimeoutMS: 60000, // Increase timeout
-    socketTimeoutMS: 45000,
+    serverSelectionTimeoutMS: 30000, // Reduced from 60000
+    socketTimeoutMS: 30000, // Reduced from 45000
     family: 4,
-    maxPoolSize: 10,
-    minPoolSize: 2,
-    maxIdleTimeMS: 30000,
-    compressors: 'zlib',
+    maxPoolSize: 5, // Reduced from 10
+    minPoolSize: 1, // Reduced from 2
+    maxIdleTimeMS: 10000, // Reduced from 30000
     retryWrites: true,
     retryReads: true,
-    connectTimeoutMS: 30000,
+    connectTimeoutMS: 10000, // Reduced from 30000
     keepAlive: true,
-    keepAliveInitialDelay: 300000
-  })
+    keepAliveInitialDelay: 30000, // Reduced from 300000
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+})
   .then(() => { 
     console.log('Connected to MongoDB');
   })
@@ -64,6 +60,36 @@ mongoose.connect(MONGO_URI, {
       process.exit(1);
     }
   });
+
+  let isConnected = false;
+
+  const connectWithRetry = () => {
+      mongoose.connect(MONGO_URI).then(() => {
+          isConnected = true;
+          console.log('MongoDB connected');
+      }).catch(err => {
+          console.error('MongoDB connection error:', err);
+          isConnected = false;
+          setTimeout(connectWithRetry, 5000);
+      });
+  };
+  
+  connectWithRetry();
+  
+  // Modify the fetchDrawings function
+  const fetchDrawings = async () => {
+      try {
+          if (!isConnected) {
+              socket.emit('error', { message: 'Database reconnecting, please wait...' });
+              return;
+          }
+          const drawings = await Drawing.find().sort('timestamp').limit(1000).lean().exec();
+          socket.emit('loadDrawing', drawings);
+      } catch (err) {
+          console.error('Error fetching drawings:', err);
+          socket.emit('error', { message: 'Failed to load drawings, retrying...' });
+      }
+  };
 
 mongoose.connection.on('error', (err) => {
   console.error('MongoDB connection error:', err);
