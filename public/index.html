@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SketchSpace</title>
+  <link rel="stylesheet" href="styles.css">
+  <!-- Add favicon reference -->
+  <link rel="icon" href="favicon.ico" type="image/x-icon">
+  <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+
+  <meta name="description" content="SketchSpace is a real-time collaborative whiteboard platform where anyone in the world can instantly join, edit, and contribute." />
+  <meta property="og:title" content="SketchSpace" />
+  <meta property="og:description" content="SketchSpace is a real-time collaborative whiteboard platform where anyone in the world can instantly join, edit, and contribute." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://sketchspace.vercel.app/" />
+
+</head>
+<body>
+
+  <!-- Sidebar for controls -->
+  <div id="sidebar">
+    <div id="sidebar-header">
+      <div id="logo">
+        <!-- Replace with logo.png -->
+        <img src="logo.png" alt="SketchSpace Logo">
+      </div>
+    </div>
+
+    <div class="tools-section">
+      <div class="section-title">Tools</div>
+      
+      <!-- Pen tool -->
+      <button class="tool-button active" id="pen-button">
+        <svg viewBox="0 0 24 24">
+          <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+        </svg>
+        <span class="tooltip">Pen (P)</span>
+      </button>
+      
+      <!-- Eraser tool -->
+      <button class="tool-button" id="eraser-button">
+        <svg viewBox="0 0 24 24">
+          <path d="M15.14 3c-.51 0-1.02.2-1.41.59L2.59 14.73c-.78.77-.78 2.04 0 2.83L5.03 20h7.66l8.72-8.72c.78-.78.78-2.05 0-2.83l-4.85-4.86c-.39-.39-.9-.59-1.42-.59M7.5 18c-.83 0-1.5-.67-1.5-1.5S6.67 15 7.5 15s1.5.67 1.5 1.5S8.33 18 7.5 18m8.99-10.38L13.12 11l-3.5-3.5 2.38-2.38 4.5 4.5"/>
+        </svg>
+        <span class="tooltip">Eraser (E)</span>
+      </button>
+      
+      <!-- Color picker -->
+      <div class="color-picker-wrapper">
+        <input type="color" id="color-picker" value="#000000" />
+        <span class="tooltip">Color</span>
+      </div>
+      
+      <!-- Thickness control for pen -->
+      <div class="thickness-container">
+        <div class="thickness-preview">
+          <div class="thickness-dot" id="thickness-dot"></div>
+        </div>
+        <span class="tooltip">Pen Thickness</span>
+        
+        <div class="thickness-popup">
+          <div class="popup-title">Pen Thickness</div>
+          <input type="range" id="thickness-slider" class="thickness-slider" min="1" max="20" value="5" />
+          <div class="thickness-value" id="thickness-value">5px</div>
+        </div>
+      </div>
+
+      <!-- Thickness control for eraser -->
+      <div class="eraser-thickness-container">
+        <div class="eraser-thickness-preview">
+          <div class="eraser-thickness-dot" id="eraser-thickness-dot"></div>
+        </div>
+        <span class="tooltip">Eraser Thickness</span>
+        
+        <div class="eraser-thickness-popup">
+          <div class="popup-title">Eraser Thickness</div>
+          <input type="range" id="eraser-thickness-slider" class="thickness-slider" min="5" max="50" value="20" />
+          <div class="thickness-value" id="eraser-thickness-value">20px</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tools-section">
+      <div class="section-title">Actions</div>
+      
+      <!-- Clear canvas button -->
+      <button class="tool-button" id="clear-button">
+        <svg viewBox="0 0 24 24">
+          <path d="M19 4h-3.5l-1-1h-5l-1 1H5v2h14M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12z"/>
+        </svg>
+        <span class="tooltip">Clear Canvas (C)</span>
+      </button>
+    </div>
+
+    <div class="tools-section">
+      <div class="section-title">Help</div>
+      
+      <!-- Info button -->
+      <button class="tool-button" id="info-button">
+        <svg viewBox="0 0 24 24">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
+        </svg>
+        <span class="tooltip">Information</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Canvas for drawing -->
+  <canvas id="whiteboard"></canvas>
+
+  <!-- Connection status indicator -->
+  <div id="connection-status" style="position: fixed; bottom: 10px; right: 10px; padding: 5px 10px; background: rgba(0,0,0,0.7); color: white; border-radius: 5px; font-size: 12px; display: none;">
+    Status: <span id="status-text">Disconnected</span>
+    <div id="status-details" style="font-size: 10px; opacity: 0.8; margin-top: 2px;"></div>
+  </div>
+
+  <!-- Info modal -->
+  <div id="info-modal" class="modal">
+    <div class="modal-content">
+      <span class="close-button">&times;</span>
+      <h2>SketchSpace</h2>
+      <p>A real-time collaborative whiteboard tool.</p>
+      <p><strong>Keyboard Shortcuts:</strong></p>
+      <ul>
+        <li><strong>P</strong> - Pen Tool</li>
+        <li><strong>E</strong> - Eraser Tool</li>
+        <li><strong>C</strong> - Clear Canvas</li>
+      </ul>
+      <p>Created by Armaan</p>
+    </div>
+  </div>
+
+  <script src="https://cdn.socket.io/4.1.3/socket.io.min.js"></script>
+  <script>
+    // Enhanced connection status monitor with error handling
+    document.addEventListener('DOMContentLoaded', function() {
+      const statusDiv = document.getElementById('connection-status');
+      const statusText = document.getElementById('status-text');
+      const statusDetails = document.getElementById('status-details');
+      
+      if (statusDiv) {
+        statusDiv.style.display = 'block';
+        
+        window.updateConnectionStatus = function(status, message) {
+          statusText.textContent = status;
+          statusDetails.textContent = message || '';
+          
+          switch(status) {
+            case 'Connected':
+              statusDiv.style.backgroundColor = 'rgba(0,128,0,0.7)';
+              break;
+            case 'Disconnected':
+              statusDiv.style.backgroundColor = 'rgba(255,0,0,0.7)';
+              break;
+            case 'Error':
+              statusDiv.style.backgroundColor = 'rgba(255,0,0,0.9)';
+              break;
+            default:
+              statusDiv.style.backgroundColor = 'rgba(255,165,0,0.7)';
+          }
+        };
+
+        // Initial status
+        statusText.textContent = 'Connecting...';
+        statusDiv.style.backgroundColor = 'rgba(255,165,0,0.7)';
+        
+        // Add click handler to retry connection
+        statusDiv.addEventListener('click', function() {
+          if (statusText.textContent === 'Disconnected' || statusText.textContent === 'Error') {
+            location.reload();
+          }
+        });
+        statusDiv.title = 'Click to reconnect if disconnected';
+      }
+    });
+  </script>
+  <script src="script.js"></script>
+</body>
+</html>
