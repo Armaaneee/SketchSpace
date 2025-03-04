@@ -10,17 +10,25 @@ const server = http.createServer(app);
 
 // Initialize socket.io with proper CORS and production settings
 const io = socketIo(server, {
+    transports: ['polling'],
+    path: '/socket.io/',
+    reconnection: true,
+    reconnectionAttempts: 5,
+    reconnectionDelay: 1000,
+    reconnectionDelayMax: 5000,
+    timeout: 20000,
+    autoConnect: true,
+    forceNew: true,
     cors: {
         origin: "*",
         methods: ["GET", "POST", "OPTIONS"],
         credentials: true
     },
-    transports: ['polling', 'websocket'],
     allowEIO3: true,
-    path: '/socket.io/',
     pingTimeout: 60000,
     pingInterval: 25000,
-    maxHttpBufferSize: 1e8
+    maxHttpBufferSize: 1e8,
+    upgradeTimeout: 30000
 });
 
 // MongoDB URI from environment variables with fallback

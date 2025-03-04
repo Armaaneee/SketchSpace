@@ -1,11 +1,13 @@
 // Socket initialization with improved reconnection settings and error handling
 const socket = io({
-  reconnection: true,
-  reconnectionAttempts: 10,
-  reconnectionDelay: 1000,
-  timeout: 20000,
-  transports: ['polling', 'websocket'],
+  transports: ['polling'],
   path: '/socket.io/',
+  reconnection: true,
+  reconnectionAttempts: 5,
+  reconnectionDelay: 1000,
+  reconnectionDelayMax: 5000,
+  timeout: 20000,
+  autoConnect: true,
   forceNew: true
 });
 
