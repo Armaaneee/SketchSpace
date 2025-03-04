@@ -4,7 +4,7 @@ const socket = io({
   reconnectionAttempts: 10,
   reconnectionDelay: 1000,
   timeout: 20000,
-  transports: ['websocket', 'polling'], // Add this line
+  transports: ['polling', 'websocket'],
   path: '/socket.io/',
   forceNew: true
 });

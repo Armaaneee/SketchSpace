@@ -11,16 +11,17 @@ const server = http.createServer(app);
 // Initialize socket.io with proper CORS and production settings
 const io = socketIo(server, {
     cors: {
-        origin: "*",  // Allow all origins
-        methods: ["GET", "POST"],
+        origin: "*",
+        methods: ["GET", "POST", "OPTIONS"],
         credentials: true
-      },
-    transports: ['websocket', 'polling'],
+    },
+    transports: ['polling', 'websocket'],
     allowEIO3: true,
     path: '/socket.io/',
     pingTimeout: 60000,
-    pingInterval: 25000
-  });
+    pingInterval: 25000,
+    maxHttpBufferSize: 1e8
+});
 
 // MongoDB URI from environment variables with fallback
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/sketchspace';
