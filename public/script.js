@@ -3,7 +3,10 @@ const socket = io({
   reconnection: true,
   reconnectionAttempts: 10,
   reconnectionDelay: 1000,
-  timeout: 20000
+  timeout: 20000,
+  transports: ['websocket', 'polling'], // Add this line
+  path: '/socket.io/',
+  forceNew: true
 });
 
 // Add connection status monitoring with ping/pong

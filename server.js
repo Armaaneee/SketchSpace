@@ -10,17 +10,17 @@ const server = http.createServer(app);
 
 // Initialize socket.io with proper CORS and production settings
 const io = socketIo(server, {
-  cors: {
-    origin: process.env.NODE_ENV === 'production' 
-      ? ['https://sketch--space.vercel.app'] 
-      : "*",
-    methods: ["GET", "POST"],
-    credentials: true
-  },
-  transports: ['websocket', 'polling'],
-  allowEIO3: true,
-  path: '/socket.io'
-});
+    cors: {
+        origin: "*",  // Allow all origins
+        methods: ["GET", "POST"],
+        credentials: true
+      },
+    transports: ['websocket', 'polling'],
+    allowEIO3: true,
+    path: '/socket.io/',
+    pingTimeout: 60000,
+    pingInterval: 25000
+  });
 
 // MongoDB URI from environment variables with fallback
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/sketchspace';
@@ -31,26 +31,30 @@ mongoose.set('bufferCommands', false);
 
 // Connect to MongoDB with production-ready options
 mongoose.connect(MONGO_URI, {
-  serverSelectionTimeoutMS: 30000,
-  socketTimeoutMS: 45000,
-  family: 4,
-  maxPoolSize: 10,
-  minPoolSize: 2,
-  maxIdleTimeMS: 30000,
-  compressors: 'zlib'
-})
-.then(() => { 
-  console.log('Connected to MongoDB');
-})
-.catch((err) => {
-  console.error('Error connecting to MongoDB:', err);
-  // In production, we might want to keep the server running even if DB fails
-  if (process.env.NODE_ENV === 'production') {
-    console.log('Running in production without DB connection');
-  } else {
-    process.exit(1);
-  }
-});
+    serverSelectionTimeoutMS: 60000, // Increase timeout
+    socketTimeoutMS: 45000,
+    family: 4,
+    maxPoolSize: 10,
+    minPoolSize: 2,
+    maxIdleTimeMS: 30000,
+    compressors: 'zlib',
+    retryWrites: true,
+    retryReads: true,
+    connectTimeoutMS: 30000,
+    keepAlive: true,
+    keepAliveInitialDelay: 300000
+  })
+  .then(() => { 
+    console.log('Connected to MongoDB');
+  })
+  .catch((err) => {
+    console.error('Error connecting to MongoDB:', err);
+    if (process.env.NODE_ENV === 'production') {
+      console.log('Running in production without DB connection');
+    } else {
+      process.exit(1);
+    }
+  });
 
 mongoose.connection.on('error', (err) => {
   console.error('MongoDB connection error:', err);
